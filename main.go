@@ -55,7 +55,34 @@ func main() {
 	}
 
 	// the jwt middleware
-	var authMiddleware, err = jwt.New(&jwt.GinJWTMiddleware{
+	var authMiddleware, err = initJwt()
+	if err != nil {
+		log.Fatal("JWT Error:" + err.Error())
+	}
+
+	r.POST("/login", authMiddleware.LoginHandler)
+
+	r.NoRoute(authMiddleware.MiddlewareFunc(), func(c *gin.Context) {
+		claims := jwt.ExtractClaims(c)
+		log.Printf("NoRoute claims: %#v\n", claims)
+		c.JSON(404, gin.H{"code": "PAGE_NOT_FOUND", "message": "Page not found"})
+	})
+
+	auth := r.Group("/auth")
+	// Refresh time can be longer than token timeout
+	auth.GET("/refresh_token", authMiddleware.RefreshHandler)
+	auth.Use(authMiddleware.MiddlewareFunc())
+	{
+		auth.GET("/hello", helloHandler)
+	}
+
+	if err := http.ListenAndServe(":"+port, r); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func initJwt() (*jwt.GinJWTMiddleware, error) {
+	authMiddleware, err := jwt.New(&jwt.GinJWTMiddleware{
 		Realm: "test zone",
 		Key:   []byte("secret key"),
 
@@ -131,11 +158,10 @@ func main() {
 		Timeout:              configs.GetJwtConf().JwtTtl,
 		MaxRefresh:           configs.GetJwtConf().JwtRefreshTtl,
 	})
-	fmt.Println(configs.GetJwtConf().JwtTtl, configs.GetJwtConf().JwtRefreshTtl)
 	if err != nil {
-		log.Fatal("JWT Error:" + err.Error())
+		return authMiddleware, err
 	}
-	//fmt.Println(ioutil.ReadFile(configs.GetJwtConf().JwtPrivatePath))
+
 	// When you use jwt.New(), the function is already automatically called for checking,
 	// which means you don't need to call it again.
 	errInit := authMiddleware.MiddlewareInit()
@@ -144,23 +170,5 @@ func main() {
 		log.Fatal("authMiddleware.MiddlewareInit() Error:" + errInit.Error())
 	}
 
-	r.POST("/login", authMiddleware.LoginHandler)
-
-	r.NoRoute(authMiddleware.MiddlewareFunc(), func(c *gin.Context) {
-		claims := jwt.ExtractClaims(c)
-		log.Printf("NoRoute claims: %#v\n", claims)
-		c.JSON(404, gin.H{"code": "PAGE_NOT_FOUND", "message": "Page not found"})
-	})
-
-	auth := r.Group("/auth")
-	// Refresh time can be longer than token timeout
-	auth.GET("/refresh_token", authMiddleware.RefreshHandler)
-	auth.Use(authMiddleware.MiddlewareFunc())
-	{
-		auth.GET("/hello", helloHandler)
-	}
-
-	if err := http.ListenAndServe(":"+port, r); err != nil {
-		log.Fatal(err)
-	}
+	return authMiddleware, err
 }
