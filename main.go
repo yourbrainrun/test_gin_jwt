@@ -36,6 +36,7 @@ type User struct {
 	FirstName string
 	LastName  string
 }
+
 func init() {
 	// 加载 .env 文件
 	err := godotenv.Load()
@@ -130,7 +131,7 @@ func main() {
 		Timeout:              configs.GetJwtConf().JwtTtl,
 		MaxRefresh:           configs.GetJwtConf().JwtRefreshTtl,
 	})
-
+	fmt.Println(configs.GetJwtConf().JwtTtl, configs.GetJwtConf().JwtRefreshTtl)
 	if err != nil {
 		log.Fatal("JWT Error:" + err.Error())
 	}

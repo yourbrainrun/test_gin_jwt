@@ -30,13 +30,13 @@ func GetJwtConf() *jwtConf {
 		if err != nil {
 			return
 		}
-		JwtConfInstance.JwtTtl = time.Duration(ttlInt64)
+		JwtConfInstance.JwtTtl = time.Duration(ttlInt64) * time.Second
 
 		ttlInt64, err = strconv.ParseInt(os.Getenv("JWT_REFRESH_TTL"), 10, 64)
 		if err != nil {
 			return
 		}
-		JwtConfInstance.JwtRefreshTtl = time.Duration(ttlInt64)
+		JwtConfInstance.JwtRefreshTtl = time.Duration(ttlInt64) * time.Second
 		fmt.Println(JwtConfInstance)
 	})
 	return &JwtConfInstance
