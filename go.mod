@@ -6,4 +6,5 @@ require (
 	github.com/appleboy/gin-jwt/v2 v2.8.0
 	github.com/gin-gonic/gin v1.7.7
 	github.com/joho/godotenv v1.4.0
+	gorm.io/gorm v1.21.13 // indirect
 )

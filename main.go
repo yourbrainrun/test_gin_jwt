@@ -18,7 +18,7 @@ type login struct {
 	Password string `form:"password" json:"password" binding:"required"`
 }
 
-var identityKey = "id"
+var identityKey string
 
 func helloHandler(c *gin.Context) {
 	claims := jwt.ExtractClaims(c)
@@ -43,6 +43,7 @@ func init() {
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
+	identityKey = configs.GetJwtConf().JwtIdentityId
 }
 func main() {
 	port := os.Getenv("PORT")
@@ -82,10 +83,10 @@ func main() {
 }
 
 func initJwt() (*jwt.GinJWTMiddleware, error) {
+	fmt.Println(identityKey)
 	authMiddleware, err := jwt.New(&jwt.GinJWTMiddleware{
-		Realm: "test zone",
-		Key:   []byte("secret key"),
-
+		Realm:       "test zone",
+		Key:         []byte("secret key"),
 		IdentityKey: identityKey,
 		PayloadFunc: func(data interface{}) jwt.MapClaims {
 			if v, ok := data.(*User); ok {
