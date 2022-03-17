@@ -92,6 +92,9 @@ func initJwt() (*jwt.GinJWTMiddleware, error) {
 			if v, ok := data.(*User); ok {
 				return jwt.MapClaims{
 					identityKey: v.UserName,
+					"test1":"ok",
+					"test2":"ok",
+					"test4":"ok",
 				}
 			}
 			return jwt.MapClaims{}
